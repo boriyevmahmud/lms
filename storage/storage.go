@@ -9,4 +9,6 @@ type IStorage interface {
 
 type StudentStorage interface {
 	Create(student models.Student) (string, error)
+	Update(student models.Student) (string, error)
+	GetAll(req models.GetAllStudentsRequest) (models.GetAllStudentsResponse, error)
 }
