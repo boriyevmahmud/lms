@@ -34,7 +34,6 @@ func (s *studentRepo) Create(student models.Student) (string, error) {
 
 func (s *studentRepo) Update(student models.Student) (string, error) {
 
-
 	query := ` UPDATE students set first_name = $1,updated_at = NOW() WHERE id = $2 `
 
 	_, err := s.db.Exec(query, student.FirstName, student.Id)
@@ -87,4 +86,16 @@ func (s *studentRepo) GetAll(req models.GetAllStudentsRequest) (models.GetAllStu
 	}
 
 	return resp, nil
+}
+
+func (s *studentRepo) Delete(id string) error {
+
+	query := ` DELETE from students where id = $1 `
+
+	_, err := s.db.Exec(query, id)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
