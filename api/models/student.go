@@ -21,9 +21,10 @@ type GetStudent struct {
 }
 
 type GetAllStudentsRequest struct {
-	Search string `json:"search"`
-	Page   uint64 `json:"page"`
-	Limit  uint64 `json:"limit"`
+	Search   string
+	Page     uint64
+	Limit    uint64
+	IsActive bool
 }
 
 type GetAllStudentsResponse struct {

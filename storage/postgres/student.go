@@ -3,16 +3,18 @@ package postgres
 import (
 	"backend_course/lms/api/models"
 	"backend_course/lms/pkg"
+	"context"
 	"database/sql"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type studentRepo struct {
-	db *sql.DB
+	db *pgxpool.Pool
 }
 
-func NewStudent(db *sql.DB) studentRepo {
+func NewStudent(db *pgxpool.Pool) studentRepo {
 	return studentRepo{
 		db: db,
 	}
@@ -24,7 +26,7 @@ func (s *studentRepo) Create(student models.Student) (string, error) {
 
 	query := ` INSERT INTO students (id, first_name, created_at) VALUES ($1, $2, NOW()) `
 
-	_, err := s.db.Exec(query, id, student.FirstName)
+	_, err := s.db.Exec(context.Background(), query, id, student.FirstName)
 	if err != nil {
 		return "", err
 	}
@@ -36,7 +38,7 @@ func (s *studentRepo) Update(student models.Student) (string, error) {
 
 	query := ` UPDATE students set first_name = $1,updated_at = NOW() WHERE id = $2 `
 
-	_, err := s.db.Exec(query, student.FirstName, student.Id)
+	_, err := s.db.Exec(context.Background(), query, student.FirstName, student.Id)
 	if err != nil {
 		return "", err
 	}
@@ -60,7 +62,7 @@ func (s *studentRepo) GetAll(req models.GetAllStudentsRequest) (models.GetAllStu
 				WHERE TRUE ` + filter + `
 				OFFSET $1 LIMIT $2
 					`
-	rows, err := s.db.Query(query, offest, req.Limit)
+	rows, err := s.db.Query(context.Background(), query, offest, req.Limit)
 	if err != nil {
 		return resp, err
 	}
@@ -80,7 +82,7 @@ func (s *studentRepo) GetAll(req models.GetAllStudentsRequest) (models.GetAllStu
 		resp.Students = append(resp.Students, student)
 	}
 
-	err = s.db.QueryRow(`SELECT count(*) from students WHERE TRUE ` + filter + ``).Scan(&resp.Count)
+	err = s.db.QueryRow(context.Background(), `SELECT count(*) from students WHERE TRUE `+filter+``).Scan(&resp.Count)
 	if err != nil {
 		return resp, err
 	}
@@ -92,7 +94,7 @@ func (s *studentRepo) Delete(id string) error {
 
 	query := ` DELETE from students where id = $1 `
 
-	_, err := s.db.Exec(query, id)
+	_, err := s.db.Exec(context.Background(), query, id)
 	if err != nil {
 		return err
 	}
