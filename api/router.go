@@ -6,6 +6,7 @@ import (
 	"backend_course/lms/storage"
 
 	"github.com/gin-gonic/gin"
+
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
@@ -21,9 +22,16 @@ func New(store storage.IStorage, service service.IServiceManager) *gin.Engine {
 
 	r.POST("/student", h.CreateStudent)
 	r.PUT("/student/:id", h.UpdateStudent)
-	r.GET("/student", h.GetAllStudents)
+	r.PATCH("/student/:id", h.UpdateStudentStatus)
+	r.GET("/students", h.GetAllStudents)
 	r.DELETE("/student/:id", h.DeleteStudent)
-
+	r.GET("/student/:id", h.GetStudent)
+	r.POST("/teacher", h.CreateTeacher)
+	r.PUT("/teacher/:id", h.UpdateTeacher)
+	r.GET("/teachers", h.GetAllTeachers)
+	r.DELETE("/teacher/:id", h.DeleteTeacher)
+	r.GET("/teacher/:id", h.GetTeacher)
+	
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	return r

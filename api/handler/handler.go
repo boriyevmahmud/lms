@@ -12,13 +12,13 @@ import (
 )
 
 type Handler struct {
-	Store   storage.IStorage
+	Store storage.IStorage
 	Service service.IServiceManager
 }
 
 func NewStrg(store storage.IStorage, service service.IServiceManager) Handler {
 	return Handler{
-		Store:   store,
+		Store: store,
 		Service: service,
 	}
 }

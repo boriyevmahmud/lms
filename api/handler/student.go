@@ -2,7 +2,6 @@ package handler
 
 import (
 	_ "backend_course/lms/api/docs"
-
 	"backend_course/lms/api/models"
 	"backend_course/lms/pkg/check"
 	"net/http"
@@ -12,9 +11,10 @@ import (
 	"github.com/google/uuid"
 )
 
-// @Router		/student [post]
-// @Summary		creates a student
-// @Description	This api creates a student and returns its id
+
+// @Router		/student [POST]
+// @Summary		create a student
+// @Description	This api create a student and returns its id
 // @Tags		student
 // @Accept		json
 // @Produce		json
@@ -36,7 +36,7 @@ func (h Handler) CreateStudent(c *gin.Context) {
 		return
 	}
 
-	id, err := h.Service.Student().Create(student)
+	id, err := h.Store.StudentStorage().Create(student)
 	if err != nil {
 		handleResponse(c, "error while creating student", http.StatusBadRequest, err.Error())
 		return
@@ -45,14 +45,14 @@ func (h Handler) CreateStudent(c *gin.Context) {
 	handleResponse(c, "Created successfully", http.StatusOK, id)
 }
 
-// @Router		/student/{id} [put]
-// @Summary		creates a student
-// @Description	This api creates a student and returns its id
+
+// @Router		/student/{id} [PUT]
+// @Summary		update a student
+// @Description	This api update a student and returns its id
 // @Tags		student
 // @Accept		json
 // @Produce		json
 // @Param		student body models.Student true "student"
-// @Param 		id path string true "id"
 // @Success		200  {object}  models.Response
 // @Failure		400  {object}  models.Response
 // @Failure		404  {object}  models.Response
@@ -81,6 +81,115 @@ func (h Handler) UpdateStudent(c *gin.Context) {
 	handleResponse(c, "Updated successfully", http.StatusOK, id)
 }
 
+
+
+// @Router		/student/{id} [PATCH]
+// @Summary		update a student's status
+// @Description	This api update a student's status and returns its id
+// @Tags		student
+// @Accept		json
+// @Produce		json
+// @Param		student body models.Student true "student"
+// @Success		200  {object}  models.Response
+// @Failure		400  {object}  models.Response
+// @Failure		404  {object}  models.Response
+// @Failure		500  {object}  models.Response
+func (h Handler) UpdateStudentStatus(c *gin.Context) {
+
+	student := models.Student{}
+
+	id := c.Param("id")
+	if err := uuid.Validate(id); err != nil {
+		handleResponse(c, "error while validating studentId", http.StatusBadRequest, err.Error())
+		return
+	}
+	student.Id = id
+
+	if err := c.ShouldBindJSON(&student); err != nil {
+		handleResponse(c, "error while reading request body", http.StatusBadRequest, err.Error())
+		return
+	}
+	id, err := h.Store.StudentStorage().UpdateStatus(student)
+	if err != nil {
+		handleResponse(c, "error while updating student", http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	handleResponse(c, "Updated successfully", http.StatusOK, id)
+}
+
+
+
+
+
+
+
+
+// @Router		/student/{id} [DELETE]
+// @Summary		delete a student
+// @Description	This api delete a student
+// @Tags		student
+// @Accept		json
+// @Produce		json
+// @Param		student body models.Student true "student"
+// @Success		200  {object}  models.Response
+// @Failure		400  {object}  models.Response
+// @Failure		404  {object}  models.Response
+// @Failure		500  {object}  models.Response
+func (h Handler) DeleteStudent(c *gin.Context) {
+	id := c.Param("id")
+	if err := uuid.Validate(id); err != nil {
+		handleResponse(c, "error while validating studentId", http.StatusBadRequest, err.Error())
+		return
+	}
+	if err := h.Store.StudentStorage().Delete(id); err != nil {
+		handleResponse(c, "error while deleting student", http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	handleResponse(c, "Deleted successfully", http.StatusOK, id)
+}
+
+
+// @Router		/student/{id} [GET]
+// @Summary		Get a student
+// @Description	This api get a student
+// @Tags		student
+// @Accept		json
+// @Produce		json
+// @Param 		id path string true "id"
+// @Success		200  {object}  models.Response
+// @Failure		400  {object}  models.Response
+// @Failure		404  {object}  models.Response
+// @Failure		500  {object}  models.Response
+func (h Handler) GetStudent(c *gin.Context) {
+
+	id := c.Param("id")
+	if err := uuid.Validate(id); err != nil {
+		handleResponse(c, "error while validating studentId", http.StatusBadRequest, err.Error())
+		return
+	}
+
+	std, err := h.Store.StudentStorage().GetStudent(id)
+	if err != nil {
+		handleResponse(c, "error while getting student", http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	handleResponse(c, "Got successfully", http.StatusOK, std)
+}
+
+// @Router		/students [GET]
+// @Summary		Get  students
+// @Description	This api get all students
+// @Tags		student
+// @Accept		json
+// @Produce		json
+// @Param		student body models.Student true "student"
+// @Success		200  {object}  models.Response
+// @Failure		400  {object}  models.Response
+// @Failure		404  {object}  models.Response
+// @Failure		500  {object}  models.Response
 func (h Handler) GetAllStudents(c *gin.Context) {
 	search := c.Query("search")
 
@@ -105,21 +214,4 @@ func (h Handler) GetAllStudents(c *gin.Context) {
 		return
 	}
 	handleResponse(c, "request successful", http.StatusOK, resp)
-}
-
-func (h Handler) DeleteStudent(c *gin.Context) {
-
-	id := c.Param("id")
-	if err := uuid.Validate(id); err != nil {
-		handleResponse(c, "error while validating id", http.StatusBadRequest, err.Error())
-		return
-	}
-
-	err := h.Store.StudentStorage().Delete(id)
-	if err != nil {
-		handleResponse(c, "error while deleting student", http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	handleResponse(c, "Deleted successfully", http.StatusOK, id)
 }

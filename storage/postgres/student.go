@@ -5,6 +5,7 @@ import (
 	"backend_course/lms/pkg"
 	"context"
 	"database/sql"
+	"fmt"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -24,9 +25,11 @@ func (s *studentRepo) Create(student models.Student) (string, error) {
 
 	id := uuid.New()
 
-	query := ` INSERT INTO students (id, first_name, created_at) VALUES ($1, $2, NOW()) `
+	query := `
+	INSERT INTO
+		students (id, first_name, last_name, age, external_id, phone, email) VALUES ($1, $2, $3, $4, $5, $6, $7);`
 
-	_, err := s.db.Exec(context.Background(), query, id, student.FirstName)
+	_, err := s.db.Exec(context.Background(), query, id, student.FirstName, student.LastName, student.Age, student.ExternalId, student.Phone, student.Email)
 	if err != nil {
 		return "", err
 	}
@@ -35,15 +38,58 @@ func (s *studentRepo) Create(student models.Student) (string, error) {
 }
 
 func (s *studentRepo) Update(student models.Student) (string, error) {
+	query := `
+	UPDATE
+		students
+	SET
+		first_name = $2, last_name = $3, age = $4, external_id = $5, phone = $6, email = $7, updated_at = NOW()
+	WHERE 
+		id = $1 `
 
-	query := ` UPDATE students set first_name = $1,updated_at = NOW() WHERE id = $2 `
-
-	_, err := s.db.Exec(context.Background(), query, student.FirstName, student.Id)
+	_, err := s.db.Exec(context.Background(), query, student.Id, student.LastName, student.Age, student.ExternalId, student.Phone, student.Email)
 	if err != nil {
 		return "", err
 	}
-
 	return student.Id, nil
+}
+
+func (s *studentRepo) UpdateStatus(student models.Student) (string, error) {
+	fmt.Println(student.IsActive)
+	if student.IsActive {
+		student.IsActive = false
+	} else {
+		student.IsActive = true
+	}
+	fmt.Println(student.IsActive)
+	query := `
+	UPDATE
+		students
+	SET
+	is_active = $2
+	WHERE 
+		id = $1;`
+
+	_, err := s.db.Exec(context.Background(), query, student.Id, student.IsActive)
+	if err != nil {
+		return "", err
+	}
+	return student.Id, nil
+}
+
+func (s *studentRepo) Delete(id string) error {
+	query := `
+	DELETE
+	FROM
+		students
+	WHERE 
+		id = $1 `
+
+	_, err := s.db.Exec(context.Background(), query, id)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (s *studentRepo) GetAll(req models.GetAllStudentsRequest) (models.GetAllStudentsResponse, error) {
@@ -90,14 +136,77 @@ func (s *studentRepo) GetAll(req models.GetAllStudentsRequest) (models.GetAllStu
 	return resp, nil
 }
 
-func (s *studentRepo) Delete(id string) error {
+func (s *studentRepo) GetStudent(id string) (models.GetStudent, error) {
 
-	query := ` DELETE from students where id = $1 `
+	query := `
+	SELECT
+		id,
+		first_name,
+		last_name,
+		age,
+		external_id,
+		phone,
+		mail,
+		to_char(created_at,'YYYY-MM-DD HH:MM:SS'),
+		to_char(updated_at,'YYYY-MM-DD HH:MM:SS')
+	FROM
+		students
+	WHERE
+		id = $1;
+`
+	fmt.Println("id: ", id)
+	row := s.db.QueryRow(context.Background(), query, id)
 
-	_, err := s.db.Exec(context.Background(), query, id)
+	var (
+		student  models.GetStudent
+		lastName sql.NullString
+	)
+
+	err := row.Scan(
+		&student.Id,
+		&student.FirstName,
+		&lastName,
+		&student.Age,
+		&student.ExternalId,
+		&student.Phone,
+		&student.Email,
+		&student.CreatedAt,
+		&student.UpdatedAt)
+	fmt.Println("student: ", student)
 	if err != nil {
-		return err
+		return student, err
+	}
+	student.LastName = pkg.NullStringToString(lastName)
+
+	queryForTimeTable := `
+	SELECT 
+		ts.id,
+		t.first_name,
+		to_char(ts.start_date,'YYYY-MM-DD HH:MM:SS'),
+		to_char(ts.end_date,'YYYY-MM-DD HH:MM:SS')
+		FROM time_tables ts 
+		JOIN teachers t ON ts.teacher_id = t.id
+		-- join subject
+		`
+
+	rows, err := s.db.Query(context.Background(), queryForTimeTable)
+	if err != nil {
+		return student, err
+	}
+	for rows.Next() {
+		var timeTable = models.StudentTimeTable{}
+
+		if err := rows.Scan(
+			&timeTable.Id,
+			&timeTable.Teacher,
+			// &timeTable.Subject,
+			&timeTable.StartDate,
+			&timeTable.EndDate,
+		); err != nil {
+			return student, err
+		}
+		student.TimeTables = append(student.TimeTables, timeTable)
 	}
 
-	return nil
+	return student, nil
 }
