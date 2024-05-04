@@ -2,6 +2,7 @@ package api
 
 import (
 	"backend_course/lms/api/handler"
+	"backend_course/lms/service"
 	"backend_course/lms/storage"
 
 	"github.com/gin-gonic/gin"
@@ -13,8 +14,8 @@ import (
 // @title           Swagger Example API
 // @version         1.0
 // @description     This is a sample server celler server.
-func New(store storage.IStorage) *gin.Engine {
-	h := handler.NewStrg(store)
+func New(store storage.IStorage, service service.IServiceManager) *gin.Engine {
+	h := handler.NewStrg(store, service)
 
 	r := gin.Default()
 

@@ -36,7 +36,7 @@ func (h Handler) CreateStudent(c *gin.Context) {
 		return
 	}
 
-	id, err := h.Store.StudentStorage().Create(student)
+	id, err := h.Service.Student().Create(student)
 	if err != nil {
 		handleResponse(c, "error while creating student", http.StatusBadRequest, err.Error())
 		return

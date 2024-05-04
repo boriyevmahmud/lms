@@ -1,22 +1,25 @@
 package handler
 
 import (
-	"fmt"
 	"backend_course/lms/api/models"
 	"backend_course/lms/config"
+	"backend_course/lms/service"
 	"backend_course/lms/storage"
+	"fmt"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
 
 type Handler struct {
-	Store storage.IStorage
+	Store   storage.IStorage
+	Service service.IServiceManager
 }
 
-func NewStrg(store storage.IStorage) Handler {
+func NewStrg(store storage.IStorage, service service.IServiceManager) Handler {
 	return Handler{
-		Store: store,
+		Store:   store,
+		Service: service,
 	}
 }
 
