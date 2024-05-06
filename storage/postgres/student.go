@@ -27,7 +27,7 @@ func (s *studentRepo) Create(student models.Student) (string, error) {
 
 	query := `
 	INSERT INTO
-		students (id, first_name, last_name, age, external_id, phone, email) VALUES ($1, $2, $3, $4, $5, $6, $7);`
+		students (id, first_name, last_name, age, external_id, phone, mail) VALUES ($1, $2, $3, $4, $5, $6, $7);`
 
 	_, err := s.db.Exec(context.Background(), query, id, student.FirstName, student.LastName, student.Age, student.ExternalId, student.Phone, student.Email)
 	if err != nil {
@@ -42,7 +42,7 @@ func (s *studentRepo) Update(student models.Student) (string, error) {
 	UPDATE
 		students
 	SET
-		first_name = $2, last_name = $3, age = $4, external_id = $5, phone = $6, email = $7, updated_at = NOW()
+		first_name = $2, last_name = $3, age = $4, external_id = $5, phone = $6, mail = $7, updated_at = NOW()
 	WHERE 
 		id = $1 `
 
@@ -158,8 +158,8 @@ func (s *studentRepo) GetStudent(id string) (models.GetStudent, error) {
 	row := s.db.QueryRow(context.Background(), query, id)
 
 	var (
-		student  models.GetStudent
-		lastName sql.NullString
+		student             models.GetStudent
+		lastName, updatedAt sql.NullString
 	)
 
 	err := row.Scan(
@@ -171,12 +171,13 @@ func (s *studentRepo) GetStudent(id string) (models.GetStudent, error) {
 		&student.Phone,
 		&student.Email,
 		&student.CreatedAt,
-		&student.UpdatedAt)
+		&updatedAt)
 	fmt.Println("student: ", student)
 	if err != nil {
 		return student, err
 	}
 	student.LastName = pkg.NullStringToString(lastName)
+	student.UpdatedAt = pkg.NullStringToString(updatedAt)
 
 	queryForTimeTable := `
 	SELECT 
