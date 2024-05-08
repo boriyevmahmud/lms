@@ -12,7 +12,7 @@ func SendMail(toEmail string, msg string) error {
 	to := []string{toEmail}
 	subject := "Register for RENT_CAR"
 	message := msg
-
+dsafd
 	// Create the email message
 	body := "To: " + to[0] + "\r\n" +
 		"Subject: " + subject + "\r\n" +
