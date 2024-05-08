@@ -21,7 +21,7 @@ func NewStudent(db *pgxpool.Pool) studentRepo {
 	}
 }
 
-func (s *studentRepo) Create(student models.Student) (string, error) {
+func (s *studentRepo) Create(ctx context.Context, student models.Student) (string, error) {
 
 	id := uuid.New()
 
@@ -29,7 +29,7 @@ func (s *studentRepo) Create(student models.Student) (string, error) {
 	INSERT INTO
 		students (id, first_name, last_name, age, external_id, phone, mail) VALUES ($1, $2, $3, $4, $5, $6, $7);`
 
-	_, err := s.db.Exec(context.Background(), query, id, student.FirstName, student.LastName, student.Age, student.ExternalId, student.Phone, student.Email)
+	_, err := s.db.Exec(ctx, query, id, student.FirstName, student.LastName, student.Age, student.ExternalId, student.Phone, student.Email)
 	if err != nil {
 		return "", err
 	}

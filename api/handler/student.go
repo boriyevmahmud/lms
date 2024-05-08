@@ -11,7 +11,6 @@ import (
 	"github.com/google/uuid"
 )
 
-
 // @Router		/student [POST]
 // @Summary		create a student
 // @Description	This api create a student and returns its id
@@ -36,7 +35,7 @@ func (h Handler) CreateStudent(c *gin.Context) {
 		return
 	}
 
-	id, err := h.Store.StudentStorage().Create(student)
+	id, err := h.Service.Student().Create(c.Request.Context(), student)
 	if err != nil {
 		handleResponse(c, "error while creating student", http.StatusBadRequest, err.Error())
 		return
@@ -44,7 +43,6 @@ func (h Handler) CreateStudent(c *gin.Context) {
 
 	handleResponse(c, "Created successfully", http.StatusOK, id)
 }
-
 
 // @Router		/student/{id} [PUT]
 // @Summary		update a student
@@ -81,8 +79,6 @@ func (h Handler) UpdateStudent(c *gin.Context) {
 	handleResponse(c, "Updated successfully", http.StatusOK, id)
 }
 
-
-
 // @Router		/student/{id} [PATCH]
 // @Summary		update a student's status
 // @Description	This api update a student's status and returns its id
@@ -118,13 +114,6 @@ func (h Handler) UpdateStudentStatus(c *gin.Context) {
 	handleResponse(c, "Updated successfully", http.StatusOK, id)
 }
 
-
-
-
-
-
-
-
 // @Router		/student/{id} [DELETE]
 // @Summary		delete a student
 // @Description	This api delete a student
@@ -150,7 +139,6 @@ func (h Handler) DeleteStudent(c *gin.Context) {
 	handleResponse(c, "Deleted successfully", http.StatusOK, id)
 }
 
-
 // @Router		/student/{id} [GET]
 // @Summary		Get a student
 // @Description	This api get a student
@@ -164,6 +152,7 @@ func (h Handler) DeleteStudent(c *gin.Context) {
 // @Failure		500  {object}  models.Response
 func (h Handler) GetStudent(c *gin.Context) {
 
+	c.Request.Context()
 	id := c.Param("id")
 	if err := uuid.Validate(id); err != nil {
 		handleResponse(c, "error while validating studentId", http.StatusBadRequest, err.Error())

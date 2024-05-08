@@ -1,6 +1,9 @@
 package storage
 
-import "backend_course/lms/api/models"
+import (
+	"backend_course/lms/api/models"
+	"context"
+)
 
 type IStorage interface {
 	CloseDB()
@@ -9,10 +12,10 @@ type IStorage interface {
 }
 
 type StudentStorage interface {
-	Create(student models.Student) (string, error)
+	Create(ctx context.Context, student models.Student) (string, error)
 	Update(student models.Student) (string, error)
 	UpdateStatus(student models.Student) (string, error)
-	Delete(id string) (error)
+	Delete(id string) error
 	GetStudent(id string) (models.GetStudent, error)
 	GetAll(req models.GetAllStudentsRequest) (models.GetAllStudentsResponse, error)
 }
@@ -20,7 +23,7 @@ type StudentStorage interface {
 type TeacherStorage interface {
 	Create(teacher models.Teacher) (string, error)
 	Update(teacher models.Teacher) (string, error)
-	Delete(id string) (error)
+	Delete(id string) error
 	GetTeacher(id string) (models.Teacher, error)
 	GetAll(req models.GetAllTeachersRequest) (models.GetAllTeachersResponse, error)
 }

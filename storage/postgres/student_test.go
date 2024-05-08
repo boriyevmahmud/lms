@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"backend_course/lms/api/models"
+	"context"
 	"fmt"
 	"testing"
 
@@ -18,7 +19,7 @@ func TestCreateStudent(t *testing.T) {
 		LastName:  faker.Word(),
 	}
 
-	id, err := studentRepo.Create(reqStudent)
+	id, err := studentRepo.Create(context.Background(),reqStudent)
 	if assert.NoError(t, err) {
 		createdStudent, err := studentRepo.GetStudent(id)
 		if assert.NoError(t, err) {
