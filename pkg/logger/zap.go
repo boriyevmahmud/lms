@@ -26,3 +26,4 @@ func newZapLogger(namespace string) *zap.Logger {
 
 	return newZap
 }
+

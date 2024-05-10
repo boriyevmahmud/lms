@@ -41,7 +41,6 @@ func handleResponse(c *gin.Context, log logger.ILogger, msg string, statusCode i
 	} else {
 		resp.Description = config.ERR_INTERNAL_SERVER
 		log.Error("!!!!!!!! ERR_INTERNAL_SERVER !!!!!!!!", logger.Any("error: ", msg))
-
 	}
 
 	resp.StatusCode = statusCode
