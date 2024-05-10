@@ -88,6 +88,8 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/models.Response'
+      security:
+      - ApiKeyAuth: []
       summary: create a student
       tags:
       - student
@@ -425,4 +427,9 @@ paths:
       summary: Get  all teachers
       tags:
       - teacher
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"

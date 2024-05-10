@@ -11,6 +11,7 @@ import (
 	"github.com/google/uuid"
 )
 
+// @Security ApiKeyAuth
 // @Router		/student [POST]
 // @Summary		create a student
 // @Description	This api create a student and returns its id

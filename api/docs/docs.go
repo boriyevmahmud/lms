@@ -18,6 +18,11 @@ const docTemplate = `{
     "paths": {
         "/student": {
             "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
                 "description": "This api create a student and returns its id",
                 "consumes": [
                     "application/json"
@@ -656,6 +661,13 @@ const docTemplate = `{
                     "type": "string"
                 }
             }
+        }
+    },
+    "securityDefinitions": {
+        "ApiKeyAuth": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
         }
     }
 }`
