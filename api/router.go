@@ -2,6 +2,7 @@ package api
 
 import (
 	"backend_course/lms/api/handler"
+	"backend_course/lms/pkg/logger"
 	"backend_course/lms/service"
 	"backend_course/lms/storage"
 	"net/http"
@@ -19,14 +20,14 @@ import (
 // @securityDefinitions.apikey ApiKeyAuth
 // @in header
 // @name Authorization
-func New(store storage.IStorage, service service.IServiceManager) *gin.Engine {
-	h := handler.NewStrg(store, service)
+func New(store storage.IStorage, service service.IServiceManager, log logger.ILogger) *gin.Engine {
+	h := handler.NewStrg(store, service, log)
 
 	r := gin.Default()
 
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
-	r.Use(authMiddleware)
+	// r.Use(authMiddleware)
 
 	r.POST("/student", h.CreateStudent)
 	r.PUT("/student/:id", h.UpdateStudent)
