@@ -1,4 +1,76 @@
 definitions:
+  models.AddStudent:
+    properties:
+      age:
+        type: integer
+      external_id:
+        type: string
+      first_name:
+        type: string
+      is_active:
+        type: boolean
+      last_name:
+        type: string
+      mail:
+        type: string
+      password:
+        type: string
+      phone:
+        type: string
+    type: object
+  models.AddSubject:
+    properties:
+      name:
+        type: string
+      type:
+        type: string
+    type: object
+  models.AddTeacher:
+    properties:
+      first_name:
+        type: string
+      last_name:
+        type: string
+      mail:
+        type: string
+      password:
+        type: string
+      phone:
+        type: string
+      start_working:
+        type: string
+      subject_id:
+        type: string
+    type: object
+  models.AddTime:
+    properties:
+      from_date:
+        type: string
+      room_name:
+        type: string
+      student_id:
+        type: string
+      subject_id:
+        type: string
+      teacher_id:
+        type: string
+      to_date:
+        type: string
+    type: object
+  models.LoginRequest:
+    properties:
+      login:
+        type: string
+      password:
+        type: string
+    type: object
+  models.LoginResponse:
+    properties:
+      access_token:
+        type: string
+      refresh_token:
+        type: string
+    type: object
   models.Response:
     properties:
       data: {}
@@ -7,48 +79,13 @@ definitions:
       statusCode:
         type: integer
     type: object
-  models.Student:
-    properties:
-      age:
-        type: integer
-      created_at:
-        type: string
-      external_id:
-        type: string
-      first_name:
-        type: string
-      id:
-        type: string
-      is_active:
-        type: boolean
-      last_name:
-        type: string
-      mail:
-        type: string
-      phone:
-        type: string
-      updated_at:
-        type: string
-    type: object
-  models.Teacher:
+  models.UpdateSubjects:
     properties:
       created_at:
         type: string
-      first_name:
+      name:
         type: string
-      id:
-        type: string
-      last_name:
-        type: string
-      mail:
-        type: string
-      phone:
-        type: string
-      start_working:
-        type: string
-      subject_id:
-        type: string
-      updated_at:
+      type:
         type: string
     type: object
 info:
@@ -57,18 +94,17 @@ info:
   title: Swagger Example API
   version: "1.0"
 paths:
-  /student:
-    post:
+  /check-student/{id}:
+    get:
       consumes:
       - application/json
-      description: This api create a student and returns its id
+      description: This api get a check student's lesson
       parameters:
-      - description: student
-        in: body
-        name: student
+      - description: id
+        in: path
+        name: id
         required: true
-        schema:
-          $ref: '#/definitions/models.Student'
+        type: string
       produces:
       - application/json
       responses:
@@ -88,8 +124,40 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/models.Response'
-      security:
-      - ApiKeyAuth: []
+      summary: get a student's lesson
+      tags:
+      - student
+  /student:
+    post:
+      consumes:
+      - application/json
+      description: This api create a student and returns its id
+      parameters:
+      - description: student
+        in: body
+        name: student
+        required: true
+        schema:
+          $ref: '#/definitions/models.AddStudent'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.Response'
       summary: create a student
       tags:
       - student
@@ -99,12 +167,11 @@ paths:
       - application/json
       description: This api delete a student
       parameters:
-      - description: student
-        in: body
-        name: student
+      - description: id
+        in: path
+        name: id
         required: true
-        schema:
-          $ref: '#/definitions/models.Student'
+        type: string
       produces:
       - application/json
       responses:
@@ -156,7 +223,7 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/models.Response'
-      summary: Get a student
+      summary: get a student
       tags:
       - student
     patch:
@@ -169,7 +236,7 @@ paths:
         name: student
         required: true
         schema:
-          $ref: '#/definitions/models.Student'
+          $ref: '#/definitions/models.AddStudent'
       produces:
       - application/json
       responses:
@@ -202,7 +269,12 @@ paths:
         name: student
         required: true
         schema:
-          $ref: '#/definitions/models.Student'
+          $ref: '#/definitions/models.AddStudent'
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -230,13 +302,6 @@ paths:
       consumes:
       - application/json
       description: This api get all students
-      parameters:
-      - description: student
-        in: body
-        name: student
-        required: true
-        schema:
-          $ref: '#/definitions/models.Student'
       produces:
       - application/json
       responses:
@@ -256,9 +321,173 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/models.Response'
-      summary: Get  students
+      summary: get  students
       tags:
       - student
+  /subject:
+    post:
+      consumes:
+      - application/json
+      description: This api create a subject and returns its id
+      parameters:
+      - description: subject
+        in: body
+        name: subject
+        required: true
+        schema:
+          $ref: '#/definitions/models.AddSubject'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.Response'
+      summary: create a subject
+      tags:
+      - subject
+  /subject/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: This api delete a subject
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.Response'
+      summary: delete a subject
+      tags:
+      - subject
+    get:
+      consumes:
+      - application/json
+      description: This api get a subject
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.Response'
+      summary: get a subject
+      tags:
+      - subject
+    put:
+      consumes:
+      - application/json
+      description: This api update a subject and returns its id
+      parameters:
+      - description: subject
+        in: body
+        name: subject
+        required: true
+        schema:
+          $ref: '#/definitions/models.UpdateSubjects'
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.Response'
+      summary: update a subject
+      tags:
+      - subject
+  /subjects:
+    get:
+      consumes:
+      - application/json
+      description: This api get all subjects
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.Response'
+      summary: get  subjects
+      tags:
+      - subject
   /teacher:
     post:
       consumes:
@@ -270,7 +499,7 @@ paths:
         name: teacher
         required: true
         schema:
-          $ref: '#/definitions/models.Teacher'
+          $ref: '#/definitions/models.AddTeacher'
       produces:
       - application/json
       responses:
@@ -299,12 +528,11 @@ paths:
       - application/json
       description: This api delete a teacher
       parameters:
-      - description: teacher
-        in: body
-        name: teacher
+      - description: id
+        in: path
+        name: id
         required: true
-        schema:
-          $ref: '#/definitions/models.Teacher'
+        type: string
       produces:
       - application/json
       responses:
@@ -332,12 +560,11 @@ paths:
       - application/json
       description: This api get a teacher
       parameters:
-      - description: teacher
-        in: body
-        name: teacher
+      - description: id
+        in: path
+        name: id
         required: true
-        schema:
-          $ref: '#/definitions/models.Teacher'
+        type: string
       produces:
       - application/json
       responses:
@@ -357,7 +584,7 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/models.Response'
-      summary: Get a teacher
+      summary: get a teacher
       tags:
       - teacher
     put:
@@ -367,10 +594,15 @@ paths:
       parameters:
       - description: teacher
         in: body
-        name: student
+        name: teacher
         required: true
         schema:
-          $ref: '#/definitions/models.Teacher'
+          $ref: '#/definitions/models.AddTeacher'
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
       produces:
       - application/json
       responses:
@@ -390,21 +622,50 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/models.Response'
+      security:
+      - ApiKeyAuth: []
       summary: update a teacher
       tags:
       - teacher
+  /teacher/login:
+    post:
+      consumes:
+      - application/json
+      description: Teacher login
+      parameters:
+      - description: login
+        in: body
+        name: login
+        required: true
+        schema:
+          $ref: '#/definitions/models.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.LoginResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.Response'
+      summary: Teacher login
+      tags:
+      - auth
   /teachers:
     get:
       consumes:
       - application/json
       description: This api get all teachers
-      parameters:
-      - description: teacher
-        in: body
-        name: teacher
-        required: true
-        schema:
-          $ref: '#/definitions/models.Teacher'
       produces:
       - application/json
       responses:
@@ -424,9 +685,173 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/models.Response'
-      summary: Get  all teachers
+      summary: get  all teachers
       tags:
       - teacher
+  /time:
+    post:
+      consumes:
+      - application/json
+      description: This api create a time table and returns its id
+      parameters:
+      - description: time_table
+        in: body
+        name: time_table
+        required: true
+        schema:
+          $ref: '#/definitions/models.AddTime'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.Response'
+      summary: create a time table
+      tags:
+      - time_table
+  /time-tables:
+    get:
+      consumes:
+      - application/json
+      description: This api get all time tables
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.Response'
+      summary: get  time tables
+      tags:
+      - time_table
+  /time/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: This api delete a time table
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.Response'
+      summary: delete a time table
+      tags:
+      - time_table
+    get:
+      consumes:
+      - application/json
+      description: This api get a time_table
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.Response'
+      summary: get a time table
+      tags:
+      - time_table
+    put:
+      consumes:
+      - application/json
+      description: This api update a time table and returns its id
+      parameters:
+      - description: time_table
+        in: body
+        name: time_table
+        required: true
+        schema:
+          $ref: '#/definitions/models.AddTime'
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/models.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/models.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/models.Response'
+      summary: update a time table
+      tags:
+      - time_table
 securityDefinitions:
   ApiKeyAuth:
     in: header

@@ -1,9 +1,10 @@
 package logger
 
 import (
+	"os"
+
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-	"os"
 )
 
 func newZapLogger(namespace string) *zap.Logger {
@@ -26,4 +27,3 @@ func newZapLogger(namespace string) *zap.Logger {
 
 	return newZap
 }
-

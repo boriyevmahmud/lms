@@ -3,23 +3,24 @@ package handler
 import (
 	"backend_course/lms/api/models"
 	"backend_course/lms/config"
+	"backend_course/lms/pkg/jwt"
 	"backend_course/lms/pkg/logger"
 	"backend_course/lms/service"
 	"backend_course/lms/storage"
+	"errors"
+	"fmt"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
 
 type Handler struct {
-	Store   storage.IStorage
 	Service service.IServiceManager
 	Log     logger.ILogger
 }
 
 func NewStrg(store storage.IStorage, service service.IServiceManager, log logger.ILogger) Handler {
 	return Handler{
-		Store:   store,
 		Service: service,
 		Log:     log,
 	}
@@ -37,10 +38,10 @@ func handleResponse(c *gin.Context, log logger.ILogger, msg string, statusCode i
 		resp.Description = config.ERR_REDIRECTION
 	} else if statusCode >= 400 && statusCode <= 499 {
 		resp.Description = config.ERR_BADREQUEST
-		log.Error("!!!!!!!! BAD REQUEST !!!!!!!!", logger.Any("error: ", msg), logger.Any("data: ", data))
+		log.Error("BAD REQUEST", logger.Any("error: ", msg), logger.Any("data: ", data))
 	} else {
 		resp.Description = config.ERR_INTERNAL_SERVER
-		log.Error("!!!!!!!! ERR_INTERNAL_SERVER !!!!!!!!", logger.Any("error: ", msg))
+		log.Error("ERR_INTERNAL_SERVER", logger.Any("error: ", msg))
 	}
 
 	resp.StatusCode = statusCode
@@ -78,4 +79,27 @@ func ParseLimitQueryParam(c *gin.Context) (uint64, error) {
 		return 10, nil
 	}
 	return limit, nil
+}
+
+func getAuthInfo(c *gin.Context) (models.AuthInfo, error) {
+	accessToken := c.GetHeader("Authorization")
+	if accessToken == "" {
+		return models.AuthInfo{}, errors.New("unauthorized")
+	}
+
+	m, err := jwt.ExtractClaims(accessToken)
+	if err != nil {
+		return models.AuthInfo{}, err
+	}
+
+	fmt.Println("m: ", m)
+	role := m["user_role"].(string)
+	if !(role == config.TEACHER_TYPE || role == config.STUDENT_TYPE) {
+		return models.AuthInfo{}, errors.New("unauthorized")
+	}
+
+	return models.AuthInfo{
+		UserID:   m["user_id"].(string),
+		UserRole: role,
+	}, nil
 }

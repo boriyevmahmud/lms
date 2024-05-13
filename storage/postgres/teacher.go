@@ -5,7 +5,6 @@ import (
 	"backend_course/lms/pkg"
 	"context"
 	"database/sql"
-	"fmt"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -21,15 +20,15 @@ func NewTeacher(db *pgxpool.Pool) teacherRepo {
 	}
 }
 
-func (s *teacherRepo) Create(teacher models.Teacher) (string, error) {
+func (s *teacherRepo) Create(ctx context.Context, teacher models.AddTeacher) (string, error) {
 
 	id := uuid.New()
 
 	query := `
 	INSERT INTO
-		teachers (id, first_name, last_name, subject_id, start_working, phone, mail) VALUES ($1, $2, $3, $4, $5, $6, $7);`
+		teachers (id, first_name, last_name, subject_id, start_working, phone, mail, password) VALUES ($1, $2, $3, $4, $5, $6, $7, $8);`
 
-	_, err := s.db.Exec(context.Background(), query, id, teacher.FirstName, teacher.LastName, teacher.SubjectId, teacher.StartWorking, teacher.Phone, teacher.Email)
+	_, err := s.db.Exec(ctx, query, id, teacher.FirstName, teacher.LastName, teacher.SubjectId, teacher.StartWorking, teacher.Phone, teacher.Email, teacher.Password)
 	if err != nil {
 		return "", err
 	}
@@ -37,7 +36,7 @@ func (s *teacherRepo) Create(teacher models.Teacher) (string, error) {
 	return id.String(), nil
 }
 
-func (s *teacherRepo) Update(teacher models.Teacher) (string, error) {
+func (s *teacherRepo) Update(ctx context.Context, teacher models.Teacher) (string, error) {
 	query := `
 	UPDATE
 		teachers
@@ -46,14 +45,14 @@ func (s *teacherRepo) Update(teacher models.Teacher) (string, error) {
 	WHERE 
 		id = $1 `
 
-	_, err := s.db.Exec(context.Background(), query, teacher.Id, teacher.LastName, teacher.SubjectId, teacher.StartWorking, teacher.Phone, teacher.Email)
+	_, err := s.db.Exec(ctx, query, teacher.Id, teacher.FirstName, teacher.LastName, teacher.SubjectId, teacher.StartWorking, teacher.Phone, teacher.Email)
 	if err != nil {
 		return "", err
 	}
 	return teacher.Id, nil
 }
 
-func (s *teacherRepo) Delete(id string) error {
+func (s *teacherRepo) Delete(ctx context.Context, id string) error {
 	query := `
 	DELETE
 	FROM
@@ -61,7 +60,7 @@ func (s *teacherRepo) Delete(id string) error {
 	WHERE 
 		id = $1 `
 
-	_, err := s.db.Exec(context.Background(), query, id)
+	_, err := s.db.Exec(ctx, query, id)
 	if err != nil {
 		return err
 	}
@@ -69,7 +68,7 @@ func (s *teacherRepo) Delete(id string) error {
 	return nil
 }
 
-func (s *teacherRepo) GetAll(req models.GetAllTeachersRequest) (models.GetAllTeachersResponse, error) {
+func (s *teacherRepo) GetAll(ctx context.Context, req models.GetAllTeachersRequest) (models.GetAllTeachersResponse, error) {
 	resp := models.GetAllTeachersResponse{}
 	filter := ""
 	offest := (req.Page - 1) * req.Limit
@@ -78,34 +77,58 @@ func (s *teacherRepo) GetAll(req models.GetAllTeachersRequest) (models.GetAllTea
 		filter = ` AND first_name ILIKE '%` + req.Search + `%' `
 	}
 
-	query := `SELECT id,
-					first_name,
-					last_name
-				FROM teachers
-				WHERE TRUE ` + filter + `
-				OFFSET $1 LIMIT $2
-					`
-	rows, err := s.db.Query(context.Background(), query, offest, req.Limit)
+	query := `
+	SELECT 
+		id,
+		first_name,
+		last_name,
+		subject_id,
+		TO_CHAR(start_working,'YYYY-MM-DD HH:MM:SS'),
+		phone,
+		mail,
+		TO_CHAR(created_at,'YYYY-MM-DD HH:MM:SS'),
+		TO_CHAR(updated_at,'YYYY-MM-DD HH:MM:SS')
+	FROM 
+		teachers
+	WHERE TRUE ` + filter + `
+	OFFSET
+		$1 
+	LIMIT 
+		$2;`
+
+	rows, err := s.db.Query(ctx, query, offest, req.Limit)
 	if err != nil {
 		return resp, err
 	}
 	for rows.Next() {
 		var (
-			teacher  models.Teacher
-			lastName sql.NullString
+			teacher                                                                         models.Teacher
+			firstName, lastName, subjectId, startWorking, phone, mail, createdAt, updatedAt sql.NullString
 		)
+
 		if err := rows.Scan(
 			&teacher.Id,
-			&teacher.FirstName,
-			&lastName); err != nil {
+			&firstName,
+			&lastName,
+			&subjectId,
+			&startWorking,
+			&phone,
+			&mail,
+			&createdAt,
+			&updatedAt); err != nil {
 			return resp, err
 		}
-
+		teacher.FirstName = pkg.NullStringToString(firstName)
 		teacher.LastName = pkg.NullStringToString(lastName)
+		teacher.SubjectId = pkg.NullStringToString(subjectId)
+		teacher.StartWorking = pkg.NullStringToString(startWorking)
+		teacher.Phone = pkg.NullStringToString(phone)
+		teacher.Email = pkg.NullStringToString(mail)
+
 		resp.Teachers = append(resp.Teachers, teacher)
 	}
 
-	err = s.db.QueryRow(context.Background(), `SELECT count(*) from teachers WHERE TRUE `+filter+``).Scan(&resp.Count)
+	err = s.db.QueryRow(ctx, `SELECT count(*) from teachers WHERE TRUE `+filter+``).Scan(&resp.Count)
 	if err != nil {
 		return resp, err
 	}
@@ -113,7 +136,7 @@ func (s *teacherRepo) GetAll(req models.GetAllTeachersRequest) (models.GetAllTea
 	return resp, nil
 }
 
-func (s *teacherRepo) GetTeacher(id string) (models.Teacher, error) {
+func (s *teacherRepo) GetTeacher(ctx context.Context, id string) (models.Teacher, error) {
 
 	query := `
 	SELECT
@@ -121,26 +144,86 @@ func (s *teacherRepo) GetTeacher(id string) (models.Teacher, error) {
 		first_name,
 		last_name,
 		subject_id,
-		start_working,
+		TO_CHAR(start_working,'YYYY-MM-DD HH:MM:SS'),
 		phone,
 		mail,
-		created_at,
-		updated_at
+		TO_CHAR(created_at,'YYYY-MM-DD HH:MM:SS'),
+		TO_CHAR(updated_at,'YYYY-MM-DD HH:MM:SS')
 	FROM
 		teachers
 	WHERE
 		id = $1;
 `
-	row := s.db.QueryRow(context.Background(), query, id)
+	row := s.db.QueryRow(ctx, query, id)
 
-	var teacher models.Teacher
+	var (
+		teacher                                                                         models.Teacher
+		firstName, lastName, subjectId, startWorking, phone, mail, createdAt, updatedAt sql.NullString
+	)
 
-	err := row.Scan(&teacher.Id, &teacher.FirstName, &teacher.LastName, &teacher.SubjectId, &teacher.StartWorking, &teacher.Phone, &teacher.Email, &teacher.CreatedAt, &teacher.UpdatedAt)
-	fmt.Println(teacher.Id, teacher.FirstName)
-	fmt.Println(err)
+	err := row.Scan(&teacher.Id, &firstName, &lastName, &subjectId, &startWorking, &phone, &mail, &createdAt, &updatedAt)
+
+	teacher.FirstName = pkg.NullStringToString(firstName)
+	teacher.LastName = pkg.NullStringToString(lastName)
+	teacher.SubjectId = pkg.NullStringToString(subjectId)
+	teacher.StartWorking = pkg.NullStringToString(startWorking)
+	teacher.Phone = pkg.NullStringToString(phone)
+	teacher.Email = pkg.NullStringToString(mail)
+
 	if err != nil {
 		return teacher, err
 	}
+	return teacher, nil
+}
 
+func (s *teacherRepo) GetTeacherByLogin(ctx context.Context, login string) (models.Teacher, error) {
+
+	query := `
+	SELECT
+		id,
+		first_name,
+		last_name,
+		subject_id,
+		TO_CHAR(start_working,'YYYY-MM-DD HH:MM:SS'),
+		phone,
+		mail,
+		TO_CHAR(created_at,'YYYY-MM-DD HH:MM:SS'),
+		TO_CHAR(updated_at,'YYYY-MM-DD HH:MM:SS'),
+		password
+	FROM
+		teachers
+	WHERE
+		mail = $1;
+`
+	row := s.db.QueryRow(ctx, query, login)
+
+	var (
+		teacher                                                                         models.Teacher
+		firstName, lastName, subjectId, startWorking, phone, mail, createdAt, updatedAt sql.NullString
+	)
+
+	err := row.Scan(
+		&teacher.Id,
+		&firstName,
+		&lastName,
+		&subjectId,
+		&startWorking,
+		&phone,
+		&mail,
+		&createdAt,
+		&updatedAt,
+		&teacher.Password,
+	)
+
+	teacher.FirstName = pkg.NullStringToString(firstName)
+	teacher.LastName = pkg.NullStringToString(lastName)
+	teacher.SubjectId = pkg.NullStringToString(subjectId)
+	teacher.StartWorking = pkg.NullStringToString(startWorking)
+	teacher.Phone = pkg.NullStringToString(phone)
+	teacher.Email = pkg.NullStringToString(mail)
+
+	if err != nil {
+		return teacher, err
+	}
 	return teacher, nil
 }

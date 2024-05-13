@@ -19,8 +19,8 @@ type Config struct {
 
 func Load() Config {
 
-	if err := godotenv.Load(); err != nil {
-		fmt.Println("error!!!", err)
+	if err := godotenv.Load("/home/acer/golang/lms/.env"); err != nil {
+		fmt.Println("Error loading .env file, err: ", err)
 	}
 	cfg := Config{}
 
@@ -30,6 +30,7 @@ func Load() Config {
 	cfg.PostgresUser = cast.ToString(getOrReturnDefault("POSTGRES_USER", "makhmud"))
 	cfg.PostgresPassword = cast.ToString(getOrReturnDefault("POSTGRES_PASSWORD", "1"))
 	cfg.ServiceName = "LMS"
+
 	return cfg
 }
 

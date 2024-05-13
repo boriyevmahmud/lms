@@ -10,6 +10,34 @@ type Teacher struct {
 	Email        string `json:"mail"`
 	CreatedAt    string `json:"created_at"`
 	UpdatedAt    string `json:"updated_at"`
+	Password     string `json:"password,omitempty"`
+}
+
+type AddTeacher struct {
+	FirstName    string `json:"first_name"`
+	LastName     string `json:"last_name"`
+	SubjectId    string `json:"subject_id"`
+	StartWorking string `json:"start_working"`
+	Phone        string `json:"phone"`
+	Email        string `json:"mail"`
+	Password     string `json:"password,omitempty"`
+}
+
+type CheckLessonTeacher struct {
+	Id          string       `json:"id"`
+	SubjectName string       `json:"subject_name"`
+	Students    []MyStudents `json:"students"`
+	RoomName    string       `json:"room_name"`
+	TimeLeft    string       `json:"time_left"`
+}
+
+type MyStudents struct {
+	FirstName string `json:"first_name"`
+	LastName  string `json:"last_name"`
+	Age       int    `json:"age"`
+	Phone     string `json:"phone"`
+	Email     string `json:"mail"`
+	IsActive  bool   `json:"is_active"`
 }
 
 type GetAllTeachersRequest struct {

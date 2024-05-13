@@ -8,7 +8,23 @@ const (
 	ERR_INTERNAL_SERVER = "While the request appears to be valid, the server could not complete the request"
 	SmtpServer          = "smtp.gmail.com"
 	SmtpPort            = "587"
-	SmtpUsername        = ""
-	SmtpPassword        = ""
-	SignedKey           = "teUvAr}9UhY3X~UZ8*ZHeZ=h7_C>jw5aoib+1u71"
+	SmtpUsername        = "jumaniyozovibodulla07@gmail.com"
+	SmtpPassword        = "pntm dene uuvh qavx"
+
+	TEACHER_TYPE = "teacher"
+	STUDENT_TYPE = "student"
 )
+
+var SignedKey = []byte(`AtRdbumqoPjbcNjNhBgtmdAnRJyPQVXjwMPNYNbv`)
+
+// os qanday ishlaydi?
+// terminal nimaga kerak?
+// qanday commandalar bor terminalda?
+// ps nima qiladi commanda?
+// cp copy qiladi.
+// big io notation
+// data structure algorithms
+// map
+// gorotune
+// parallesim
+// channel

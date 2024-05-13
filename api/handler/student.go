@@ -11,20 +11,19 @@ import (
 	"github.com/google/uuid"
 )
 
-// @Security ApiKeyAuth
 // @Router		/student [POST]
 // @Summary		create a student
 // @Description	This api create a student and returns its id
 // @Tags		student
 // @Accept		json
 // @Produce		json
-// @Param		student body models.Student true "student"
+// @Param		student body models.AddStudent true "student"
 // @Success		200  {object}  models.Response
 // @Failure		400  {object}  models.Response
 // @Failure		404  {object}  models.Response
 // @Failure		500  {object}  models.Response
 func (h Handler) CreateStudent(c *gin.Context) {
-	student := models.Student{}
+	student := models.AddStudent{}
 
 	if err := c.ShouldBindJSON(&student); err != nil {
 		handleResponse(c, h.Log, "error while reading request body", http.StatusBadRequest, err.Error())
@@ -51,7 +50,8 @@ func (h Handler) CreateStudent(c *gin.Context) {
 // @Tags		student
 // @Accept		json
 // @Produce		json
-// @Param		student body models.Student true "student"
+// @Param		student body models.AddStudent true "student"
+// @Param		id path string true "id"
 // @Success		200  {object}  models.Response
 // @Failure		400  {object}  models.Response
 // @Failure		404  {object}  models.Response
@@ -71,7 +71,7 @@ func (h Handler) UpdateStudent(c *gin.Context) {
 		handleResponse(c, h.Log, "error while reading request body", http.StatusBadRequest, err.Error())
 		return
 	}
-	id, err := h.Store.StudentStorage().Update(student)
+	id, err := h.Service.Student().Update(c.Request.Context(), student)
 	if err != nil {
 		handleResponse(c, h.Log, "error while updating student", http.StatusInternalServerError, err.Error())
 		return
@@ -86,7 +86,7 @@ func (h Handler) UpdateStudent(c *gin.Context) {
 // @Tags		student
 // @Accept		json
 // @Produce		json
-// @Param		student body models.Student true "student"
+// @Param		student body models.AddStudent true "student"
 // @Success		200  {object}  models.Response
 // @Failure		400  {object}  models.Response
 // @Failure		404  {object}  models.Response
@@ -106,7 +106,7 @@ func (h Handler) UpdateStudentStatus(c *gin.Context) {
 		handleResponse(c, h.Log, "error while reading request body", http.StatusBadRequest, err.Error())
 		return
 	}
-	id, err := h.Store.StudentStorage().UpdateStatus(student)
+	id, err := h.Service.Student().UpdateStatus(c.Request.Context(), student)
 	if err != nil {
 		handleResponse(c, h.Log, "error while updating student", http.StatusInternalServerError, err.Error())
 		return
@@ -121,7 +121,7 @@ func (h Handler) UpdateStudentStatus(c *gin.Context) {
 // @Tags		student
 // @Accept		json
 // @Produce		json
-// @Param		student body models.Student true "student"
+// @Param		id path string true "id"
 // @Success		200  {object}  models.Response
 // @Failure		400  {object}  models.Response
 // @Failure		404  {object}  models.Response
@@ -132,7 +132,7 @@ func (h Handler) DeleteStudent(c *gin.Context) {
 		handleResponse(c, h.Log, "error while validating studentId", http.StatusBadRequest, err.Error())
 		return
 	}
-	if err := h.Store.StudentStorage().Delete(id); err != nil {
+	if err := h.Service.Student().Delete(c.Request.Context(), id); err != nil {
 		handleResponse(c, h.Log, "error while deleting student", http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -141,26 +141,25 @@ func (h Handler) DeleteStudent(c *gin.Context) {
 }
 
 // @Router		/student/{id} [GET]
-// @Summary		Get a student
+// @Summary		get a student
 // @Description	This api get a student
 // @Tags		student
 // @Accept		json
 // @Produce		json
-// @Param 		id path string true "id"
+// @Param		id path string true "id"
 // @Success		200  {object}  models.Response
 // @Failure		400  {object}  models.Response
 // @Failure		404  {object}  models.Response
 // @Failure		500  {object}  models.Response
 func (h Handler) GetStudent(c *gin.Context) {
 
-	c.Request.Context()
 	id := c.Param("id")
 	if err := uuid.Validate(id); err != nil {
 		handleResponse(c, h.Log, "error while validating studentId", http.StatusBadRequest, err.Error())
 		return
 	}
 
-	std, err := h.Store.StudentStorage().GetStudent(id)
+	std, err := h.Service.Student().GetStudent(c.Request.Context(), id)
 	if err != nil {
 		handleResponse(c, h.Log, "error while getting student", http.StatusInternalServerError, err.Error())
 		return
@@ -170,12 +169,11 @@ func (h Handler) GetStudent(c *gin.Context) {
 }
 
 // @Router		/students [GET]
-// @Summary		Get  students
+// @Summary		get  students
 // @Description	This api get all students
 // @Tags		student
 // @Accept		json
 // @Produce		json
-// @Param		student body models.Student true "student"
 // @Success		200  {object}  models.Response
 // @Failure		400  {object}  models.Response
 // @Failure		404  {object}  models.Response
@@ -194,7 +192,7 @@ func (h Handler) GetAllStudents(c *gin.Context) {
 		return
 	}
 
-	resp, err := h.Store.StudentStorage().GetAll(models.GetAllStudentsRequest{
+	resp, err := h.Service.Student().GetAll(c.Request.Context(), models.GetAllStudentsRequest{
 		Search: search,
 		Page:   page,
 		Limit:  limit,
@@ -204,4 +202,33 @@ func (h Handler) GetAllStudents(c *gin.Context) {
 		return
 	}
 	handleResponse(c, h.Log, "request successful", http.StatusOK, resp)
+}
+
+
+// @Router		/check-student/{id} [GET]
+// @Summary		get a student's lesson
+// @Description	This api get a check student's lesson
+// @Tags		student
+// @Accept		json
+// @Produce		json
+// @Param		id path string true "id"
+// @Success		200  {object}  models.Response
+// @Failure		400  {object}  models.Response
+// @Failure		404  {object}  models.Response
+// @Failure		500  {object}  models.Response
+func (h Handler) CheckStudentLesson(c *gin.Context) {
+
+	id := c.Param("id")
+	if err := uuid.Validate(id); err != nil {
+		handleResponse(c, h.Log, "error while validating studentId", http.StatusBadRequest, err.Error())
+		return
+	}
+
+	std, err := h.Service.Student().CheckStudentLesson(c.Request.Context(), id)
+	if err != nil {
+		handleResponse(c, h.Log, "error while getting check student", http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	handleResponse(c, h.Log, "Got successfully", http.StatusOK, std)
 }

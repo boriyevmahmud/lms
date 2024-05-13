@@ -3,6 +3,8 @@ package handler
 import (
 	_ "backend_course/lms/api/docs"
 	"backend_course/lms/api/models"
+	"backend_course/lms/pkg"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -15,20 +17,26 @@ import (
 // @Tags		teacher
 // @Accept		json
 // @Produce		json
-// @Param		teacher body models.Teacher true "teacher"
+// @Param		teacher body models.AddTeacher true "teacher"
 // @Success		200  {object}  models.Response
 // @Failure		400  {object}  models.Response
 // @Failure		404  {object}  models.Response
 // @Failure		500  {object}  models.Response
 func (h Handler) CreateTeacher(c *gin.Context) {
-	teacher := models.Teacher{}
+	teacher := models.AddTeacher{}
 
 	if err := c.ShouldBindJSON(&teacher); err != nil {
 		handleResponse(c, h.Log, "error while reading request body", http.StatusBadRequest, err.Error())
 		return
 	}
 
-	id, err := h.Store.TeacherStorage().Create(teacher)
+	pswd, err := pkg.HashPassword(teacher.Password)
+	if err != nil {
+		handleResponse(c, h.Log, "error while hashing password", http.StatusBadRequest, err.Error())
+		return
+	}
+	teacher.Password = pswd
+	id, err := h.Service.Teacher().Create(c.Request.Context(), teacher)
 	if err != nil {
 		handleResponse(c, h.Log, "error while creating teacher", http.StatusBadRequest, err.Error())
 		return
@@ -37,21 +45,27 @@ func (h Handler) CreateTeacher(c *gin.Context) {
 	handleResponse(c, h.Log, "Created successfully", http.StatusOK, id)
 }
 
+// @Security	ApiKeyAuth
 // @Router		/teacher/{id} [PUT]
 // @Summary		update a teacher
 // @Description	This api update a teacher and returns its id
 // @Tags		teacher
 // @Accept		json
 // @Produce		json
-// @Param		student body models.Teacher true "teacher"
+// @Param		teacher body models.AddTeacher true "teacher"
+// @Param		id path string true "id"
 // @Success		200  {object}  models.Response
 // @Failure		400  {object}  models.Response
 // @Failure		404  {object}  models.Response
 // @Failure		500  {object}  models.Response
 func (h Handler) UpdateTeacher(c *gin.Context) {
-
+	fmt.Println("in here 0")
 	teacher := models.Teacher{}
-
+	_, err := getAuthInfo(c)
+	if err != nil {
+		handleResponse(c, h.Log, "unauthorized", http.StatusUnauthorized, err.Error())
+		return
+	}
 	id := c.Param("id")
 	if err := uuid.Validate(id); err != nil {
 		handleResponse(c, h.Log, "error while validating teacherId", http.StatusBadRequest, err.Error())
@@ -63,7 +77,7 @@ func (h Handler) UpdateTeacher(c *gin.Context) {
 		handleResponse(c, h.Log, "error while reading request body", http.StatusBadRequest, err.Error())
 		return
 	}
-	id, err := h.Store.TeacherStorage().Update(teacher)
+	id, err = h.Service.Teacher().Update(c.Request.Context(), teacher)
 	if err != nil {
 		handleResponse(c, h.Log, "error while updating teacher", http.StatusInternalServerError, err.Error())
 		return
@@ -78,7 +92,7 @@ func (h Handler) UpdateTeacher(c *gin.Context) {
 // @Tags		teacher
 // @Accept		json
 // @Produce		json
-// @Param		teacher body models.Teacher true "teacher"
+// @Param		id path string true "id"
 // @Success		200  {object}  models.Response
 // @Failure		400  {object}  models.Response
 // @Failure		404  {object}  models.Response
@@ -89,7 +103,7 @@ func (h Handler) DeleteTeacher(c *gin.Context) {
 		handleResponse(c, h.Log, "error while validating teacherId", http.StatusBadRequest, err.Error())
 		return
 	}
-	if err := h.Store.TeacherStorage().Delete(id); err != nil {
+	if err := h.Service.Teacher().Delete(c.Request.Context(), id); err != nil {
 		handleResponse(c, h.Log, "error while deleting teacher", http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -98,12 +112,12 @@ func (h Handler) DeleteTeacher(c *gin.Context) {
 }
 
 // @Router		/teacher/{id} [GET]
-// @Summary		Get a teacher
+// @Summary		get a teacher
 // @Description	This api get a teacher
 // @Tags		teacher
 // @Accept		json
 // @Produce		json
-// @Param		teacher body models.Teacher true "teacher"
+// @Param		id path string true "id"
 // @Success		200  {object}  models.Response
 // @Failure		400  {object}  models.Response
 // @Failure		404  {object}  models.Response
@@ -116,7 +130,7 @@ func (h Handler) GetTeacher(c *gin.Context) {
 		return
 	}
 
-	std, err := h.Store.TeacherStorage().GetTeacher(id)
+	std, err := h.Service.Teacher().GetTeacher(c.Request.Context(), id)
 	if err != nil {
 		handleResponse(c, h.Log, "error while getting teacher", http.StatusInternalServerError, err.Error())
 		return
@@ -126,12 +140,11 @@ func (h Handler) GetTeacher(c *gin.Context) {
 }
 
 // @Router		/teachers [GET]
-// @Summary		Get  all teachers
+// @Summary		get  all teachers
 // @Description	This api get all teachers
 // @Tags		teacher
 // @Accept		json
 // @Produce		json
-// @Param		teacher body models.Teacher true "teacher"
 // @Success		200  {object}  models.Response
 // @Failure		400  {object}  models.Response
 // @Failure		404  {object}  models.Response
@@ -150,7 +163,7 @@ func (h Handler) GetAllTeachers(c *gin.Context) {
 		return
 	}
 
-	resp, err := h.Store.TeacherStorage().GetAll(models.GetAllTeachersRequest{
+	resp, err := h.Service.Teacher().GetAll(c.Request.Context(), models.GetAllTeachersRequest{
 		Limit:  limit,
 		Page:   page,
 		Search: search,
