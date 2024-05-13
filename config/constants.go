@@ -10,4 +10,5 @@ const (
 	SmtpPort            = "587"
 	SmtpUsername        = ""
 	SmtpPassword        = ""
+	SignedKey           = "teUvAr}9UhY3X~UZ8*ZHeZ=h7_C>jw5aoib+1u71"
 )
