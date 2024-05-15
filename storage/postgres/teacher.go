@@ -26,7 +26,14 @@ func (s *teacherRepo) Create(ctx context.Context, teacher models.AddTeacher) (st
 
 	query := `
 	INSERT INTO
-		teachers (id, first_name, last_name, subject_id, start_working, phone, mail, password) VALUES ($1, $2, $3, $4, $5, $6, $7, $8);`
+		teachers (id, 
+			first_name,
+			last_name, 
+			subject_id, 
+			start_working, 
+			phone, 
+			mail, 
+			password) VALUES ($1, $2, $3, $4, $5, $6, $7, $8);`
 
 	_, err := s.db.Exec(ctx, query, id, teacher.FirstName, teacher.LastName, teacher.SubjectId, teacher.StartWorking, teacher.Phone, teacher.Email, teacher.Password)
 	if err != nil {

@@ -1,17 +1,15 @@
-package check
+package smtp
 
 import (
 	"backend_course/lms/config"
-	"log"
 	"net/smtp"
-	"testing"
 )
 
 func SendMail(toEmail string, msg string) error {
 
 	from := config.SmtpUsername
 	to := []string{toEmail}
-	subject := "Register for Ibodulla"
+	subject := "Register OTP"
 	message := msg
 
 	body := "To: " + to[0] + "\r\n" +
@@ -26,13 +24,4 @@ func SendMail(toEmail string, msg string) error {
 	}
 
 	return nil
-}
-
-func TestSendMail(t *testing.T) {
-
-	err := SendMail("jumaniyozovibodulla@mail.ru", "Salomlar bo'lsin")
-
-	if err != nil {
-		log.Fatal("didn't send :", err)
-	}
 }

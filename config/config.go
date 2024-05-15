@@ -15,11 +15,15 @@ type Config struct {
 	PostgresUser     string
 	PostgresDatabase string
 	ServiceName      string
+
+	RedisHost     string
+	RedisPort     string
+	RedisPassword string
 }
 
 func Load() Config {
 
-	if err := godotenv.Load("/home/acer/golang/lms/.env"); err != nil {
+	if err := godotenv.Load(".env"); err != nil {
 		fmt.Println("Error loading .env file, err: ", err)
 	}
 	cfg := Config{}
@@ -31,6 +35,9 @@ func Load() Config {
 	cfg.PostgresPassword = cast.ToString(getOrReturnDefault("POSTGRES_PASSWORD", "1"))
 	cfg.ServiceName = "LMS"
 
+	cfg.RedisHost = "localhost" //cast.ToString(getOrReturnDefault("REDIS_HOST", "localhost"))
+	cfg.RedisPort = "6379"      //cast.ToString(getOrReturnDefault("REDIS_PORT", "6379"))
+	cfg.RedisPassword = cast.ToString(getOrReturnDefault("REDIS_PASSWORD", "password"))
 	return cfg
 }
 

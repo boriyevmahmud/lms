@@ -7,15 +7,19 @@ import (
 	"fmt"
 	"time"
 
+	"backend_course/lms/storage/redis"
+
 	"github.com/jackc/pgx/v5/pgxpool"
 	_ "github.com/lib/pq"
 )
 
 type Store struct {
-	Pool *pgxpool.Pool
+	Pool  *pgxpool.Pool
+	cfg   config.Config
+	redis storage.IRedisStorage
 }
 
-func New(ctx context.Context, cfg config.Config) (storage.IStorage, error) {
+func New(ctx context.Context, cfg config.Config, redis storage.IRedisStorage) (storage.IStorage, error) {
 	url := fmt.Sprintf(`host=%s port=%v user=%s password=%s database=%s sslmode=disable`,
 		cfg.PostgresHost, cfg.PostgresPort, cfg.PostgresUser, cfg.PostgresPassword, cfg.PostgresDatabase)
 
@@ -33,7 +37,9 @@ func New(ctx context.Context, cfg config.Config) (storage.IStorage, error) {
 	}
 
 	return Store{
-		Pool: newPool,
+		Pool:  newPool,
+		redis: redis,
+		cfg:   cfg,
 	}, nil
 }
 func (s Store) CloseDB() {
@@ -44,7 +50,6 @@ func (s Store) StudentStorage() storage.StudentStorage {
 	newStudent := NewStudent(s.Pool)
 	return &newStudent
 }
-
 
 func (s Store) TeacherStorage() storage.TeacherStorage {
 	newTeacher := NewTeacher(s.Pool)
@@ -59,4 +64,8 @@ func (s Store) SubjectsStorage() storage.SubjectStorage {
 func (s Store) TimeStorage() storage.TimeStorage {
 	newTime := NewTime(s.Pool)
 	return &newTime
+}
+
+func (s Store) Redis() storage.IRedisStorage {
+	return redis.New(s.cfg)
 }

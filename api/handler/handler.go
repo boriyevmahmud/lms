@@ -41,7 +41,8 @@ func handleResponse(c *gin.Context, log logger.ILogger, msg string, statusCode i
 		log.Error("BAD REQUEST", logger.Any("error: ", msg), logger.Any("data: ", data))
 	} else {
 		resp.Description = config.ERR_INTERNAL_SERVER
-		log.Error("ERR_INTERNAL_SERVER", logger.Any("error: ", msg))
+		log.Error("INTERNAL SERVER ERROR", logger.Any("error: ", msg), logger.Any("data: ", data))
+
 	}
 
 	resp.StatusCode = statusCode
