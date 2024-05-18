@@ -61,3 +61,12 @@ func (s timeService) GetTimeTable(ctx context.Context, id string) (models.Time, 
 	}
 	return time, nil
 }
+
+func (s timeService) GetAllStudentsAttandenceReport(ctx context.Context, req models.GetAllStudentsAttandenceReportRequest) (models.GetAllStudentsAttandenceReportResponse, error) {
+	resp, err := s.storage.TimeStorage().GetAllStudentsAttandenceReport(ctx, req)
+
+	if err != nil {
+		return resp, err
+	}
+	return resp, nil
+}

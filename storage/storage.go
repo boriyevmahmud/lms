@@ -13,7 +13,6 @@ type IStorage interface {
 	SubjectsStorage() SubjectStorage
 	TimeStorage() TimeStorage
 	Redis() IRedisStorage
-
 }
 
 type StudentStorage interface {
@@ -49,6 +48,7 @@ type TimeStorage interface {
 	Delete(ctx context.Context, id string) error
 	GetTime(ctx context.Context, id string) (models.Time, error)
 	GetAll(ctx context.Context, req models.GetAllTimeRequest) (models.GetAllTimeResponse, error)
+	GetAllStudentsAttandenceReport(ctx context.Context, req models.GetAllStudentsAttandenceReportRequest) (models.GetAllStudentsAttandenceReportResponse, error)
 }
 
 type IRedisStorage interface {
